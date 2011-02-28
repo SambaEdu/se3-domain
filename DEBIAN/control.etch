@@ -1,0 +1,11 @@
+Package: se3-domain
+Version: #VERSION#
+Section: contrib
+Priority: optional
+Architecture: all
+Conflicts: se3-installdll
+Replaces: se3-installdll
+Depends: wine, python-mysqldb, python-ldap, se3-logonpy
+Installed-Size: 1024
+Maintainer: Denis Bonnenfant<denis.bonnenfant@diderot.org>
+Description: Scripts de mise au domaine se3

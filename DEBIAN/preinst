@@ -1,0 +1,12 @@
+#! /bin/sh
+
+set -e
+(
+
+dpkg-divert --package se3-domain --add --rename --divert /usr/share/se3/sbin/create_client_linux.divert /usr/share/se3/sbin/create_client_linux.sh
+
+) >/dev/null
+
+
+
+exit 0

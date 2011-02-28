@@ -1,0 +1,47 @@
+#! /bin/sh
+#$Id:$
+# postinst script for smbedu
+#
+# see: dh_installdeb(1)
+
+set -e
+
+# summary of how this script can be called:
+#        * <postinst> `configure' <most-recently-configured-version>
+#        * <old-postinst> `abort-upgrade' <new version>
+#        * <conflictor's-postinst> `abort-remove' `in-favour' <package>
+#          <new-version>
+#        * <deconfigured's-postinst> `abort-deconfigure' `in-favour'
+#          <failed-install-package> <version> `removing'
+#          <conflicting-package> <version>
+# for details, see /usr/doc/packaging-manual/
+#
+# quoting from the policy:
+#     Any necessary prompting should almost always be confined to the
+#     post-installation script, and should be protected with a conditional
+#     so that unnecessary prompting doesn't happen if a package's
+#     installation fails and the `postinst' is called with `abort-upgrade',
+#     `abort-remove' or `abort-deconfigure'.
+case "$1" in
+    configure)
+	echo "Installation des scripts CPAU en cours......"
+	id www-se3 >/dev/null && (
+		/usr/share/se3/sbin/update-domscripts.sh >/dev/null 2>&1
+#		chown www-se3 /var/www/se3/includes/menu.d/80printers.inc
+		/usr/share/se3/sbin/create_client_linux.sh
+		grep "/usr/share/se3/scripts/integreDomaine.sh" /etc/sudoers>/dev/null ||\
+		sed -i 's|Cmnd_Alias ADM=|Cmnd_Alias ADM=/usr/share/se3/scripts/integreDomaine.sh,|' /etc/sudoers && /etc/init.d/sudo restart
+		/usr/share/se3/scripts/permse3 netlogon
+		/usr/share/se3/sbin/create_adminse3.sh
+		. /usr/share/se3/includes/config.inc.sh -clpbmsdf
+
+	)
+    ;;
+
+    *)
+        echo "postinst called with unknown argument \`$1'" >&2
+        exit 0
+    ;;
+esac
+
+exit 0
