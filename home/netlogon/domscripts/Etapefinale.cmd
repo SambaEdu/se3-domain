@@ -43,8 +43,8 @@ echo lancement du job se3 en adminse3
 start /wait %systemdrive%\netinst\CPAU.exe -wait -dec -lwp -cwd %systemdrive%\netinst -file %SystemDrive%\netinst\se3.job
 echo nettoyage du script se3.cmd
 del /F /Q %SystemDrive%\netinst\se3.cmd
-:: DANGEUREUX : if exist "%systemDrive%\Documents and settings\administrateur" rd /S /Q "%systemDrive%\Documents and settings\administrateur" && echo profil administrateur efface
-if exist "%systemDrive%\Documents and settings\administrateur\ntuser.dat" del /F /Q "%systemDrive%\Documents and settings\administrateur\ntuser.dat" && echo profil administrateur efface
+if exist "%systemDrive%\Documents and settings\administrateur_savse3" rd /S /Q "%systemDrive%\Documents and settings\administrateur_savse3"
+if exist "%systemDrive%\Documents and settings\administrateur\ntuser.dat" move "%systemDrive%\Documents and settings\administrateur\ "%systemDrive%\Documents and settings\administrateur_savse3\" && echo profil administrateur renomme
 
 echo le poste est pret : fin de la mise au domaine>> logs\domscripts.txt
 %SystemRoot%\system32\shutdown.exe -r -t 5 -c "Windows est pret pour se3 : les programmes vont s'installer au prochain reboot"
