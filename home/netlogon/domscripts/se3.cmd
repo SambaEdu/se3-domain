@@ -77,10 +77,10 @@ if exist Z:\scripts\perso.bat (
     if exist "%Z%\scripts\fra\no_driver_signing.exe" start /wait cmd /c "%Z%\scripts\fra\no_driver_signing.exe"&ping -n 10 127.0.0.1>NUL
 ) else (
     bcdedit.exe -set loadoptions DISABLE_INTEGRITY_CHECKS
-::   bcdedit.exe -set TESTSIGNING ON
 )
+
 echo ############## INSTALLATION WPKG ENCHAINEE #########
-:: on verifie si wpkg est dej� installe : si c'est le cas , c'est qu'il s'agit d'un clonage ou renommage.
+:: on verifie si wpkg est deja installe : si c'est le cas , c'est qu'il s'agit d'un clonage ou renommage.
 if exist %SystemRoot%\wpkg-client.vbs goto dejawpkg
     :: sinon, il s'agit d'une install unattended et que wpkg est installe => installation des programmes wpkg prevus pour "_Touslespostes"
     if exist %SystemDrive%\netinst\DOIT.BAT if exist z:\wpkg\wpkg-se3.js cscript z:\wpkg\wpkg-se3.js /profile:unattended /synchronize /nonotify
@@ -98,7 +98,7 @@ echo ################## FIN DE L'INSTALLATION WPKG ###############
 
 echo.
 echo ######## Installation d'ocsinventory si present sur le se3 ############
-:: 1. stopper service, 2. remplacer le fichier ini pour fixer une remontee rapide apr�s 2sec, 3. redemarrer le service => remontee d'un rapport immediat
+:: 1. stopper service, 2. remplacer le fichier ini pour fixer une remontee rapide apres 2sec, 3. redemarrer le service => remontee d'un rapport immediat
 set OCSINI=%ProgramFiles%\OCS Inventory Agent\service.ini
 if exist %NETBIOS_NAME%\Progs\ro\inventory\deploy\ocs.bat (
     call %NETBIOS_NAME%\Progs\ro\inventory\deploy\ocs.bat
