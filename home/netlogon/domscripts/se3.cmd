@@ -81,9 +81,9 @@ if exist Z:\scripts\perso.bat (
 
 echo ############## INSTALLATION WPKG ENCHAINEE #########
 :: on verifie si wpkg est deja installe : si c'est le cas , c'est qu'il s'agit d'un clonage ou renommage.
-if exist %SystemRoot%\wpkg-client.vbs goto dejawpkg
-    :: sinon, il s'agit d'une install unattended et que wpkg est installe => installation des programmes wpkg prevus pour "_Touslespostes"
-    if exist %SystemDrive%\netinst\DOIT.BAT if exist z:\wpkg\wpkg-se3.js cscript z:\wpkg\wpkg-se3.js /profile:unattended /synchronize /nonotify
+:: if exist %SystemRoot%\wpkg-client.vbs goto dejawpkg
+:: sinon, il s'agit d'une install unattended et que wpkg est installe => installation des programmes wpkg prevus pour "_Touslespostes"
+if exist %SystemDrive%\netinst\DOIT.BAT if exist z:\wpkg\wpkg-se3.js cscript z:\wpkg\wpkg-se3.js /profile:unattended /synchronize /nonotify
 :dejawpkg
 :: (re) installer la tache wpkg sans la lancer 
 echo Installation de la tache planifiee wpkg sans execution immediate
@@ -91,7 +91,8 @@ Set NoRunWpkgJS=1
 Set TaskUser=adminse3
 Set TaskPass=%XPPASS%
 if exist Z:\wpkg\wpkg-install.bat call Z:\wpkg\wpkg-install.bat
-
+::  visiblement cela ne suffit pas en cas de clonage/changement de nom...
+if exist Z:\wpkg\wpkg-repair.bat call Z:\wpkg\wpkg-repair.bat
 echo.
 echo WPKG SERA LANCE AU PROCHAIN REBOOT
 echo ################## FIN DE L'INSTALLATION WPKG ###############
