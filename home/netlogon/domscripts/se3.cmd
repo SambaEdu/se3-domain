@@ -44,7 +44,7 @@ reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\NetCache" 
 reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\NetCache" /v "Enabled" /t "REG_DWORD" /d "0" /F >NUL
 
 echo Securisation du compte Administrateur : "wawa" n'est pas tres secure meme si le chef n'est pas d'accord.
-if exist %systemdrive%\localpw.job (
+if exist %systemdrive%\netinst\localpw.job (
     start /wait %systemdrive%\netinst\CPAU.exe -wait -dec -lwp -cwd %SystemDrive%\ -file %SystemDrive%\netinst\localpw.job
 ) else (	
     net user administrateur %XPPASS% >NUL
