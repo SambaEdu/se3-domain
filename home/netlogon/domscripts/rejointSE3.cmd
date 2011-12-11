@@ -1,10 +1,10 @@
 :: script de mise au domaine manuel
 :: $Id: rejointSE3.cmd 5579 2010-06-01 19:44:08Z dbo $
-:: n'est normalement lanc� qu'en cas d'adh�sion d'un nouveau poste, et que la mise au
-:: domaine depuis l'interface se3 a �chou�
+:: n'est normalement lancee qu'en cas d'adhesion d'un nouveau poste, et que la mise au
+:: domaine depuis l'interface se3 a echoue
 :: si le poste a deja ete enregistre dans l'interface, le fichier action.bat existe dans machine\ip
 ::
-:: valeur de %netbios_name% renseign�e automatiquement, ne pas toucher
+:: valeur de %netbios_name% renseignee automatiquement, ne pas toucher
 set netbios_name=
 set se3ip=
 ::
@@ -64,7 +64,7 @@ else (
         goto passwordok
         :newpassword
                 set /P PWOK=Le mot de passe ne correspond pas au mot de passe adminstrateur actuel. Voulez vous le conserver [oN] :
-        	if "%PWOK%" != "o" goto passwd
+        	if not "%PWOK%" == "o" goto passwd
         :passwordok
        	start /wait %Systemdrive%\Netinst\CPAU.exe -u administrateur -p wawa -wait -enc -file %Systemdrive%\Netinst\localpw.job  -lwp -c -ex "net user administrateur %LOCALPW%"
 )
