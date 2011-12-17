@@ -1,9 +1,11 @@
 ; Script de mise au domaine manuelle
 ; $Id$
 ; Stephane Boireau, d'après le script rejointSE3.cmd de Denis Bonnenfant
-; N'est normalement lancé qu'en cas d'adhésion 'un nouveau poste 
+; N'est normalement lancé qu'en cas d'adhésion 'un nouveau poste
 ; ou que la mise au domaine depuis l'interface SE3 a échoué.
-; Derniere modification: 04/12/2010
+; Olivier Lacroix : ce script ne contient plus que les accès réseaux à \\se3\netlogon notamment.
+; les autres commandes à passer en environnement privilégié sont dans rejointSE3-elevated.exe appelé en fin de ce script.
+; Derniere modification: 17/12/2011
 
 ;Include constants
 #include <GUIConstants.au3>
@@ -55,20 +57,20 @@ If $old_way == "y" Then
 		Sleep(2000)
 
 		$LECTEUR=_chercher_lecteur_libre()
-		
+
 		$TEST_netlogon=_chercher_lecteur_reseau("NETLOGON")
-		If $TEST_netlogon <> "" Then 
+		If $TEST_netlogon <> "" Then
 			$LECTEUR=$TEST_netlogon
 			$menage=RunWait(@Comspec & " /c net use " & $LECTEUR & ": /delete /y")
 		EndIf
-		
+
 		;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		; Il faut réclamer le nom de domaine et le mot de passe admin
 		;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 		If $DOMAINE == "" Then
 			$DOMAINE=InputBox("Informations supplémentaires","Nom de domaine: ","SAMBAEDU3","",-1,70)
 		EndIf
-		
+
 		$MDP_ADMIN_SE3=InputBox("Informations supplémentaires","Mot de passe administrateur SE3: ","","*",-1,60)
 
 		;$LECTEUR="P"
@@ -93,7 +95,7 @@ Else
 			$PAUSE_DEBUG=" & pause"
 		EndIf
 	EndIf
-	
+
 	$cible_netlogon="\\" & $SE3_NETBIOS_NAME & "\netlogon"
 	;$cible_netlogon="\\" & $SE3_NETBIOS_NAME & "\netlogonzblouc" ; Pour simuler/forcer l'echec de l'acces sans lecteur
 	$run=RunWait(@ComSpec & " /c net use " & $cible_netlogon, @SW_SHOW)
@@ -121,21 +123,21 @@ Else
 
 			;$LECTEUR=_chercher_lecteur_libre()
 			$LECTEUR="Z"
-			
+
 			; On teste si NETLOGON est monté (cela pourrait gêner si c'était ailleurs qu'en Z:)
 			$TEST_netlogon=_chercher_lecteur_reseau("NETLOGON")
-			If $TEST_netlogon <> "" Then 
+			If $TEST_netlogon <> "" Then
 				$LECTEUR=$TEST_netlogon
 				$menage=RunWait(@Comspec & " /c net use " & $LECTEUR & ": /delete /y")
 			EndIf
-			
+
 			;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 			; Il faut réclamer le nom de domaine et le mot de passe admin
 			;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 			If $DOMAINE == "" Then
 				$DOMAINE=InputBox("Informations supplémentaires","Nom de domaine: ","SAMBAEDU3","",-1,70)
 			EndIf
-			
+
 			;$MDP_ADMIN_SE3=InputBox("Informations supplémentaires","Mot de passe administrateur SE3: ","","*",-1,60)
 			$MDP_ADMINSE3=InputBox("Informations supplémentaires","Mot de passe du compte adminse3: ","","*",-1,60)
 
@@ -173,15 +175,15 @@ If $COPIE = 0 Then
 	Exit
 EndIf
 
-;if exist \\%netbios_name%\netlogon\machine\%IP%\action.bat goto action
+
 If FileExists($netlogon & "\machine\" & $IP & "\action.bat") Then
 	SplashTextOn("Information","Copie de " & $netlogon & "\machine\" & $IP & "\action.bat vers " & $SystemDrive & "\netinst\",500,100,-1,0)
 	Sleep(1000)
-	FileCopy($netlogon & "\machine\" & $IP & "\action.bat", $SystemDrive & "\netinst\", 1) 	
+	FileCopy($netlogon & "\machine\" & $IP & "\action.bat", $SystemDrive & "\netinst\", 1)
 Else
 	SplashTextOn("Information","Recherche ou saisie du nom de machine...",500,100,-1,0)
 	Sleep(1000)
-	
+
 	; Nom de la station
 	$NAME=""
 
@@ -191,9 +193,9 @@ Else
     ;:: recuperation du nom de la machine
 	If FileExists($SystemDrive & "\netinst\unattend.csv") Then
 
-		;if not exist %systemdrive%\netinst\unattend.csv goto nounattend 
+		;if not exist %systemdrive%\netinst\unattend.csv goto nounattend
 		;for /f "tokens=3 delims=," %%a in ('findstr %mac% %systemdrive%\netinst\unattend.csv') do set NAME=%%~a
-		
+
 		$FICH=FileOpen($SystemDrive & "\netinst\unattend.csv",0)
 		If $FICH = -1 Then
 			; Le fichier n'existe pas ou on n'a pas pu l'ouvrir
@@ -211,13 +213,13 @@ Else
 			FileClose($FICH)
 		EndIf
 	EndIf
-	
+
 	If $NAME == "" Then
 		SplashTextOn("Information","Aucune correspondance n'a été trouvée dans le fichier unattend.csv" & @CRLF & "Il vous est proposé d'utiliser le nom actuel de la machine: " & @ComputerName,500,100,-1,0)
 		$NAME=@ComputerName
 	Else
 		If StringLower($NAME) == StringLower(@ComputerName) Then
-			SplashTextOn("Information","Le nom de machine " & $NAME & " a été trouvé dans le fichier unattend.csv" & @CRLF & "C'est aussi le nom actuel de la machine.",500,100,-1,0)		
+			SplashTextOn("Information","Le nom de machine " & $NAME & " a été trouvé dans le fichier unattend.csv" & @CRLF & "C'est aussi le nom actuel de la machine.",500,100,-1,0)
 		Else
 			SplashTextOn("Information","Le nom de machine " & $NAME & " a été trouvé dans le fichier unattend.csv" & @CRLF & "alors que le nom actuel de la machine est " & @ComputerName,500,100,-1,0)
 		EndIf
@@ -237,8 +239,8 @@ Else
 			$NAME_CORRIGE=StringRegExpReplace($NAME,"[^A-Za-z0-9_-]","")
 			If $NAME = $NAME_CORRIGE Then
 				$RETOUR=MsgBox(0,"Information","La machine va être mise au domaine sous le nom " & $NAME, 2)
-				; La fenêtre se referme toute seule après 2 secondes... 
-				; On ne peut pas tester $RETOUR == 1 
+				; La fenêtre se referme toute seule après 2 secondes...
+				; On ne peut pas tester $RETOUR == 1
 				; Si rien n'a été cliqué, c'est que c'est OK.
 				If $RETOUR = 2 Then
 					; On a cliqué sur Cancel
@@ -269,13 +271,13 @@ Else
 		EndIf
 		; A FAIRE: Il faudrait aussi contrôler si le nom est déjà dans unattend.csv
 	WEnd
-	
+
 	; Ca ne devrait pas arriver, mais deux précautions valent mieux qu'une
 	If $NAME = "" Then
 		MsgBox(16,"ERREUR","Le nom de machine est vide." & @CRLF & "On ne peut pas poursuivre")
 		Exit
 	EndIf
-	
+
     ;:nounattend
     ;If "$NAME" = "" Then
     ;    cls
@@ -289,25 +291,11 @@ Else
 		MsgBox(16,"ERREUR", "Il n'a pas été possible de créer le fichier " & $SystemDrive & "\netinst\action.bat")
 		Exit
 	EndIf
-	
+
 	FileWriteLine($FICH,"set ACTION=renomme" & @CRLF)
 	FileWriteLine($FICH,"set NAME=" & $NAME & @CRLF)
 	FileClose($FICH)
 EndIf
-
-;	if exist z:\machine\%IP%\localpw.job (
-;		copy /y z:\machine\%IP%\action.bat %systemdrive%\netinst
-;	)
-;	else (
-;		:passwd
-;		cls
-;		set /P LOCALPW=entrez le mot de passe adminstrateur :
-;		if "%LOCALPW%x" == "x" goto shutdown
-;		net use \\%computername%\c$ /user:%computername%\administrateur %LOCALPW%
-;		if errorlevel 1 goto passwd
-;		net use \\%computername%\c$ /delete
-;		start /wait %Systemdrive%\Netinst\CPAU.exe -u administrateur -p wawa -wait -enc -file %Systemdrive%\Netinst\localpw.job  -lwp -c -ex "net user administrateur %LOCALPW%"
-;	)
 
 $temoin_demander_pass_admin="y"
 If FileExists($netlogon & "\machine\" & $IP & "\localpw.job") Then
@@ -319,52 +307,9 @@ If FileExists($netlogon & "\machine\" & $IP & "\localpw.job") Then
 	EndIf
 EndIf
 
-If $temoin_demander_pass_admin == "y" Then
-	$MDP_ADMINISTRATEUR=""
-	While $MDP_ADMINISTRATEUR == ""
 
-		$MDP_ADMINISTRATEUR=InputBox("Informations supplémentaires","Pour imposer à Administrateur le mot de passe d'adminse3, valider directement par Entree." & @CRLF & @CRLF & "Si vous souhaitez un mot de passe specifique pour le compte Administrateur, entrez le mot de passe : ","","",-1,200)
-
-		If @error == 1 Then
-			MsgBox(0,"Abandon","Vous avez souhaité abandonner l'intégration.")
-			Exit
-		EndIf
-
-		If $MDP_ADMINISTRATEUR == "" Then
-			ExitLoop
-		EndIf
-
-		$run_acces_xp=RunWait(@Comspec & " /c net use \\" & @ComputerName & "\C$ /user:" & @ComputerName & "\administrateur " & $MDP_ADMINISTRATEUR & " /persistent:no")
-	
-		If $run_acces_xp == 0 Then
-			; Acces OK, le mot de passe est valide
-			MsgBox(0,"Information","Le mot de passe est valide",3)
-	
-			$menage=RunWait(@Comspec & " /c net use \\" & @ComputerName & "\C$ /delete /y")
-		Else
-			$AutoShareWks=RegRead("HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\lanmanserver\parameters","AutoShareWks")
-
-			MsgBox(4096,"ERREUR","Il n'a pas été possible d'accéder à " & @ComputerName & "\C$" & @CRLF & @CRLF & "Soit le mot de passe administrateur est incorrect," & @CRLF & "soit les partages administratifs sont désactivés et cela va perturber l'intégration." & @CRLF & @CRLF & "Contrôlez la clé [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\lanmanserver\parameters\AutoShareWks]" & @CRLF & @CRLF & "Sa valeur actuelle a l'air d'être: '" & $AutoShareWks & "'." & @CRLF & "Elle ne doit pas être à '0' pour que les choses se passent bien.")
-
-			;Windows Registry Editor Version 5.00
-			;[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\lanmanserver\parameters]
-			;"AutoShareWks"=dword:00000001
-
-			;Exit
-			$MDP_ADMINISTRATEUR=""
-		EndIf
-	WEnd
-
-	If $MDP_ADMINISTRATEUR == "" Then
-		MsgBox(0,"Information","Le mot de passe administrateur sera modifié pour prendre celui de 'adminse3'.")
-	Else
-		; start /wait %Systemdrive%\Netinst\CPAU.exe -u administrateur -p wawa -wait -enc -file %Systemdrive%\Netinst\localpw.job  -lwp -c -ex "net user administrateur %LOCALPW%"
-		;MsgBox(0,"Info","RunWait(@Comspec & "" /c "" & $SystemDrive & "":\Netinst\CPAU.exe -u administrateur -p wawa -wait -enc -file "" & $SystemDrive & ""\Netinst\localpw.job  -lwp -c -ex ""net user administrateur " & $MDP_ADMINISTRATEUR & """")
-		RunWait(@Comspec & " /c " & $SystemDrive & ":\Netinst\CPAU.exe -u administrateur -p wawa -wait -enc -file " & $SystemDrive & "\Netinst\localpw.job  -lwp -c -ex ""net user administrateur " & $MDP_ADMINISTRATEUR & """")
-	EndIf
-EndIf
-
-
-SplashTextOn("Shutdown","Le script shutdown.cmd va être lancé pour achever de préparer l'intégration et rebooter la machine.",-1,70)
+SplashTextOn("Information","Lancement du programme rejointSE3-elevated.exe avec des privilèges élevés." & @CRLF & "Argument : $temoin_demander_pass_admin = " & $temoin_demander_pass_admin,500,100,-1,0)
 Sleep(1000)
-RunWait(@ComSpec & " /c " & $SystemDrive & "\Netinst\shutdown.cmd")
+RunWait("cscript " & $SystemDrive & "\Netinst\execute-elevated.js " & $SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin, $SystemDrive & "\Netinst")
+
+; FIN DU SCRIPT : toutes les autres commandes ont été copiées dans rejointSE3-elevated.au3 puis compilées

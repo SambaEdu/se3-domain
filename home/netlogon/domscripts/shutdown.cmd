@@ -102,12 +102,7 @@ reg.exe add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa" /v "ForceG
 REG.exe ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\ComputerName\ComputerName" /v ComputerName /t REG_SZ /d "%NAME%" /F
 REG.exe ADD "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" /v "NV Hostname" /t REG_SZ /d "%NAME%" /F
 REG.exe add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" /v "EnableLUA" /t REG_DWORD /d "0" /F
-:: pour seven
-if errorlevel 1 (
-    echo passage en administrateur pour seven>> logs\domscripts.txt
-    start /wait %Systemdrive%\Netinst\CPAU.exe -u administrateur -p wawa -ex %SystemDrive%\Netinst\shutdown.cmd -wait -lwp -cwd %SystemDrive%\Netinst
-    exit
-)    
+ 
 :: on prepare le lancement du script de remise au domaine au reboot
 
 reg.exe add "HKey_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v "SE3install" /d "%SystemDrive%\netinst\integSE3.cmd" /F >NUL
