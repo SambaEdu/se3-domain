@@ -308,8 +308,44 @@ If FileExists($netlogon & "\machine\" & $IP & "\localpw.job") Then
 EndIf
 
 
-SplashTextOn("Information","Lancement du programme rejointSE3-elevated.exe avec des privilèges élevés." & @CRLF & "Argument : $temoin_demander_pass_admin = " & $temoin_demander_pass_admin,500,100,-1,0)
-Sleep(1000)
-RunWait("cscript " & $SystemDrive & "\Netinst\execute-elevated.js " & $SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin, $SystemDrive & "\Netinst")
+_Message("Lancement du programme rejointSE3-elevated.exe sur architecture " & @OSArch & " et sur OS " & @OSVersion & ".")
+
+If @OSArch = "X86" Then
+    Switch @OSVersion
+        Case "WIN_XP"
+            RunWait($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin, $SystemDrive & "\Netinst")
+        Case "WIN_7"
+            _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin)
+        Case "WIN_VISTA"
+            _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin)
+        ; etc
+        Case Else
+            MsgBox(0,"", "OS non référencé : tentative SANS élévation de privilège.")
+            RunWait($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin, $SystemDrive & "\Netinst")
+    EndSwitch
+Else  ; ( x64 )
+    Switch @OSVersion
+        Case "WIN_XP"
+            RunWait($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin, $SystemDrive & "\Netinst")
+        Case "WIN_7"
+            _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin)
+        Case "WIN_VISTA"
+            _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin)
+        Case Else
+            MsgBox(0,"", "OS non référencé : tentative AVEC élévation de privilège.")
+            _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin)
+   EndSwitch
+EndIf
 
 ; FIN DU SCRIPT : toutes les autres commandes ont été copiées dans rejointSE3-elevated.au3 puis compilées
+
+
+Func _Execute_elevated($script)
+    RunWait("cscript " & $SystemDrive & "\Netinst\execute-elevated.js " & $script , $SystemDrive & "\Netinst")
+EndFunc
+
+Func _Message($mess)
+    SplashTextOn("Information", $mess ,500,100,-1,0)
+    Sleep(1000)
+EndFunc
+
