@@ -326,14 +326,14 @@ If @OSArch = "X86" Then
 Else  ; ( x64 )
     Switch @OSVersion
         Case "WIN_XP"
-            RunWait($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin, $SystemDrive & "\Netinst")
+            RunWait($SystemDrive & "\Netinst\rejointSE3-elevated-64.exe " & $temoin_demander_pass_admin, $SystemDrive & "\Netinst")
         Case "WIN_7"
-            _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin)
+            _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated-64.exe " & $temoin_demander_pass_admin)
         Case "WIN_VISTA"
-            _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin)
+            _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated-64.exe " & $temoin_demander_pass_admin)
         Case Else
             MsgBox(0,"", "OS non référencé : tentative AVEC élévation de privilège.")
-            _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin)
+            _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated-64.exe " & $temoin_demander_pass_admin)
    EndSwitch
 EndIf
 
