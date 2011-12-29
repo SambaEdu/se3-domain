@@ -1,4 +1,5 @@
 :: script de mise au domaine manuel
+:: fonctionnel sous windows XP et OS ultérieurs mais privilegier rejointSE3.exe.
 :: $Id: rejointSE3.cmd 5579 2010-06-01 19:44:08Z dbo $
 :: n'est normalement lancee qu'en cas d'adhesion d'un nouveau poste, et que la mise au
 :: domaine depuis l'interface se3 a echoue
@@ -28,5 +29,16 @@ copy  /Y z:\domscripts\* %Systemdrive%\Netinst
 copy  /Y z:\CPAU.exe %Systemdrive%\Netinst
 
 @echo off
-cscript %systemdrive%\Netinst\execute-elevated.js %systemdrive%\Netinst\rejoinse3-elevated.cmd
-
+for /f "tokens=3,* delims=	 " %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ProductName" 2^>NUL ^| Find "ProductName"') do (
+	echo Systeme d'exploitation: %%a %%b
+	set WINVERS=%%a %%b
+)
+:: pas d'elevation de privilege sous windows XP
+echo %WINVERS%| Find "Windows XP" 1>NUL 2>NUL
+if "%errorlevel%"=="0" (
+	echo Execution de rejointSE3-elevated.cmd sous %WINVERS%.
+	call %systemdrive%\Netinst\rejointSE3-elevated.cmd
+) ELSE (
+	echo Execution en mode eleve de rejointSE3-elevated.cmd sous %WINVERS%.
+	cscript %systemdrive%\Netinst\execute-elevated.js %systemdrive%\Netinst\rejointSE3-elevated.cmd
+)
