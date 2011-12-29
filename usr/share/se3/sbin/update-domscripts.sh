@@ -75,3 +75,7 @@ if [ -e /var/se3/Progs/install/installdll ]; then
 # 	mkdir -m 755 /var/se3/Progs/install/installdll
 # 	ln -s /home/netlogon/CPAU.exe /var/se3/Progs/install/installdll/CPAU.exe
 fi
+
+if [ ! -e /var/se3/Progs/install/domscripts ]; then
+	ln -s /home/netlogon/domscripts /var/se3/Progs/install/domscripts
+fi
