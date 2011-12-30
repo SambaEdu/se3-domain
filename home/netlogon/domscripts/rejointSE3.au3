@@ -218,6 +218,8 @@ Else
 		SplashTextOn("Information","Aucune correspondance n'a été trouvée dans le fichier unattend.csv" & @CRLF & "Il vous est proposé d'utiliser le nom actuel de la machine: " & @ComputerName,500,100,-1,0)
 		$NAME=@ComputerName
 	Else
+		; le nom de la machine existe dans unattend.csv : la fenêtre demandant le nom se fermera au bout de x secondes grace au tag $nomtrouve=1.
+		$nomtrouve = 1
 		If StringLower($NAME) == StringLower(@ComputerName) Then
 			SplashTextOn("Information","Le nom de machine " & $NAME & " a été trouvé dans le fichier unattend.csv" & @CRLF & "C'est aussi le nom actuel de la machine.",500,100,-1,0)
 		Else
@@ -227,7 +229,16 @@ Else
 	Sleep(3000)
 
 	While 1
-		$NAME=InputBox("Nom de machine", "Veuillez saisir le nom de machine souhaité: ", $NAME, "", -1, 5)
+		If $nomtrouve == 1 Then
+			; le nom a été trouvé dans unattend.csv, on met un timeout de 60 sec à la fenêtre.
+			$Saisie=InputBox("Nom de machine", "Veuillez saisir le nom de machine souhaité: ", $NAME, "", Default, 140, Default, Default,60)
+			If @error == 0 Then
+				; le nom proposé a été modifié et on a cliqué sur OK Alors on mémorise dans $NAME
+				$NAME = $Saisie
+			EndIf
+		Else
+			$NAME=InputBox("Nom de machine", "Veuillez saisir le nom de machine souhaité: ", $NAME, "", Default, Default)
+		EndIf
 		If @error = 1 Then
 			; On a cliqué sur Cancel
 			MsgBox(16,"ABANDON","Vous n'avez pas souhaité poursuivre.",1)

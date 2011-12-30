@@ -52,12 +52,12 @@ $SystemDrive=_GetSystemDrive()
 ;	)
 
 
-
+SplashTextOn("Information","Choix du mot de passe du compte Administrateur local.",500,100,-1,0)
 If $temoin_demander_pass_admin == "y" Then
 	$MDP_ADMINISTRATEUR=""
 	While $MDP_ADMINISTRATEUR == ""
-
-		$MDP_ADMINISTRATEUR=InputBox("Informations supplémentaires","Pour imposer à Administrateur le mot de passe d'adminse3, valider directement par Entree." & @CRLF & @CRLF & "Si vous souhaitez un mot de passe specifique pour le compte Administrateur, entrez le mot de passe : ","","",-1,200)
+		; demande d'un mot de passe spécifique avec un timeout de 30 secondes.
+		$MDP_ADMINISTRATEUR=InputBox("Informations supplémentaires","Pour imposer à Administrateur le mot de passe d'adminse3, valider directement par Entree." & @CRLF & @CRLF & "Si vous souhaitez un mot de passe specifique pour le compte Administrateur, entrez le mot de passe : ","","*", Default,200, Default, Default,30)
 
 		If @error == 1 Then
 			MsgBox(0,"Abandon","Vous avez souhaité abandonner l'intégration.")
@@ -78,23 +78,35 @@ If $temoin_demander_pass_admin == "y" Then
 		Else
 			$AutoShareWks=RegRead("HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\lanmanserver\parameters","AutoShareWks")
 
-			MsgBox(4096,"ERREUR","Il n'a pas été possible d'accéder à " & @ComputerName & "\C$" & @CRLF & @CRLF & "Soit le mot de passe administrateur est incorrect," & @CRLF & "soit les partages administratifs sont désactivés et cela va perturber l'intégration." & @CRLF & @CRLF & "Contrôlez la clé [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\lanmanserver\parameters\AutoShareWks]" & @CRLF & @CRLF & "Sa valeur actuelle a l'air d'être: '" & $AutoShareWks & "'." & @CRLF & "Elle ne doit pas être à '0' pour que les choses se passent bien.")
-
-			;Windows Registry Editor Version 5.00
-			;[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\lanmanserver\parameters]
-			;"AutoShareWks"=dword:00000001
-
+			If $AutoShareWks == 0 Then
+				MsgBox(4096,"ERREUR","Il n'a pas été possible d'accéder à " & @ComputerName & "\C$" & @CRLF & @CRLF & "Les partages administratifs sont désactivés et cela va perturber l'intégration." & @CRLF & @CRLF & "Contrôlez la clé [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\lanmanserver\parameters\AutoShareWks]" & @CRLF & @CRLF & "Sa valeur actuelle a l'air d'être: '" & $AutoShareWks & "'." & @CRLF & "Elle ne doit pas être à '0' pour que les choses se passent bien.")
+				;Windows Registry Editor Version 5.00
+				;[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\lanmanserver\parameters]
+				;"AutoShareWks"=dword:00000001
+			Else
+				$Reponse = MsgBox(36,"ERREUR","Le mot de passe saisi n'est pas celui actuel du compte Administrateur local." & @CRLF & "Voulez vous imposer le mot de passe saisi '" & $MDP_ADMINISTRATEUR & "' au compte Administrateur local de ce poste ?")
+				; si oui, on quitte la boucle ExitLoop pour imposer le mot de passe saisi
+				; si non, on retourne au début de la boucle avec ContinueLoop pour redemander le mot de passe d'Administrateur
+				;MsgBox(0,"test","Retour bouton :" & $Reponse )
+				If $Reponse == 6 Then
+					ExitLoop
+				;Else
+					;$MDP_ADMINISTRATEUR=""
+					;ContinueLoop
+				EndIf
+			EndIf
 			;Exit
 			$MDP_ADMINISTRATEUR=""
 		EndIf
 	WEnd
 
 	If $MDP_ADMINISTRATEUR == "" Then
-		MsgBox(0,"Information","Le mot de passe administrateur sera modifié pour prendre celui de 'adminse3'.")
+		MsgBox(0,"Information","Le mot de passe administrateur sera modifié pour prendre celui de 'adminse3'.",3)
 	Else
+		MsgBox(0,"Information","Le mot de passe administrateur sera modifié pour prendre celui saisi : " & $MDP_ADMINISTRATEUR,3)
 		; start /wait %Systemdrive%\Netinst\CPAU.exe -u administrateur -p wawa -wait -enc -file %Systemdrive%\Netinst\localpw.job  -lwp -c -ex "net user administrateur %LOCALPW%"
 		;MsgBox(0,"Info","RunWait(@Comspec & "" /c "" & $SystemDrive & "":\Netinst\CPAU.exe -u administrateur -p wawa -wait -enc -file "" & $SystemDrive & ""\Netinst\localpw.job  -lwp -c -ex ""net user administrateur " & $MDP_ADMINISTRATEUR & """")
-		RunWait(@Comspec & " /c " & $SystemDrive & ":\Netinst\CPAU.exe -u administrateur -p wawa -wait -enc -file " & $SystemDrive & "\Netinst\localpw.job  -lwp -c -ex ""net user administrateur " & $MDP_ADMINISTRATEUR & """")
+		RunWait(@Comspec & " /c " & $SystemDrive & "\Netinst\CPAU.exe -u administrateur -p wawa -wait -enc -file " & $SystemDrive & "\Netinst\localpw.job  -lwp -c -ex ""net user administrateur " & $MDP_ADMINISTRATEUR & " "" ")
 	EndIf
 EndIf
 
