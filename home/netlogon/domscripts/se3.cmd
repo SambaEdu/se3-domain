@@ -72,12 +72,22 @@ if exist Z:\scripts\perso.bat (
     echo Pas de commande personnaliseea lancer : pas de script Z:\scripts\perso.bat
 )
 
-@if "%OS%"=="Windows_NT" (
-    echo Sur windows 2000-XP, on impose "no_driver_signing" sur tous les postes
-    if exist "%Z%\scripts\fra\no_driver_signing.exe" start /wait cmd /c "%Z%\scripts\fra\no_driver_signing.exe"&ping -n 10 127.0.0.1>NUL
-) else (
+:: detection de l'OS
+for /f "tokens=3,* delims=	 " %%a in ('reg query "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion" /v "ProductName" 2^>NUL ^| Find "ProductName"') do (
+	echo Systeme d'exploitation: %%a %%b
+	set WINVERS=%%a %%b
+)
+:: accepter les drivers non signes
+:: sous XP, on procede avec un autoit, sous vista-seven on passe la bonne commande.
+echo %WINVERS%| Find "Windows XP" 1>NUL 2>NUL
+@if "%errorlevel%"=="0" (
+    echo Sur windows XP, on impose "no_driver_signing" sur tous les postes
+    if exist "%Z%\scripts\no_driver_signing.exe" start /wait cmd /c "%Z%\scripts\no_driver_signing.exe"&ping -n 10 127.0.0.1>NUL
+) ELSE (
+    echo Sous %WINVERS%, on accepte les drivers non signes.
     bcdedit.exe -set loadoptions DISABLE_INTEGRITY_CHECKS
 )
+
 
 echo ############## INSTALLATION WPKG ENCHAINEE #########
 :: on verifie si wpkg est deja installe : si c'est le cas , c'est qu'il s'agit d'un clonage ou renommage.
