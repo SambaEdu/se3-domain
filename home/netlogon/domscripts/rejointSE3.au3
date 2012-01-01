@@ -216,6 +216,7 @@ Else
 
 	If $NAME == "" Then
 		SplashTextOn("Information","Aucune correspondance n'a été trouvée dans le fichier unattend.csv" & @CRLF & "Il vous est proposé d'utiliser le nom actuel de la machine: " & @ComputerName,500,100,-1,0)
+		$nomtrouve = 0
 		$NAME=@ComputerName
 	Else
 		; le nom de la machine existe dans unattend.csv : la fenêtre demandant le nom se fermera au bout de x secondes grace au tag $nomtrouve=1.
@@ -237,7 +238,7 @@ Else
 				$NAME = $Saisie
 			EndIf
 		Else
-			$NAME=InputBox("Nom de machine", "Veuillez saisir le nom de machine souhaité: ", $NAME, "", Default, Default)
+			$NAME=InputBox("Nom de machine", "Veuillez saisir le nom de machine souhaité: ", $NAME, "", Default, 140)
 		EndIf
 		If @error = 1 Then
 			; On a cliqué sur Cancel
