@@ -20,7 +20,7 @@ JOB=se3.job
 WINECMD="env WINEDEBUG=-all wine"
 rm -f $unattendedSCRIPTS/$JOB
 echo "Creation du job CPAU se3.job qui lancera se3.cmd destine a installer les composants nécessaires a SAMBAEDU3 et tous les programmes wpkg"
-TASK="set NETBIOS_NAME=$netbios_name&set SE3_DOMAIN=$se3_domain&set XPPASS=$xppass&call c:\\netinst\\se3.cmd&net use * /delete /y"
+TASK="set NETBIOS_NAME=$netbios_name&set SE3_DOMAIN=$se3_domain&set XPPASS=$xppass&call %systemdrive%\\netinst\\se3.cmd&net use * /delete /y"
 echo "TASK se3 : $TASK" | sed -e "s/$xppass/XXXXXX/g"
 cd /tmp
 #wine /home/netlogon/CPAU.exe -u "$adminse3" -wait  -p "$xppass" -file $JOB -lwp  -ex "$TASK" -enc 
@@ -33,8 +33,8 @@ mv $JOB $unattendedSCRIPTS
 JOB=netdom.job
 rm -f $unattendedSCRIPTS/$JOB
 echo "Creation du job CPAU netdom.job qui joindra le client au domaine $se3_domain"
-#TASK="net user $adminse3 $xppass /add&net localgroup Administrateurs $adminse3 /add&call c:\\netinst\\se3netdom.cmd $se3_domain $adminse3 $xppass"
-TASK="call c:\\netinst\\se3netdom.cmd $se3_domain $adminse3 $xppass"
+#TASK="net user $adminse3 $xppass /add&net localgroup Administrateurs $adminse3 /add&call %systemdrive%\\netinst\\se3netdom.cmd $se3_domain $adminse3 $xppass"
+TASK="call %systemdrive%\\netinst\\se3netdom.cmd $se3_domain $adminse3 $xppass"
 echo "TASK : $TASK" | sed -e "s/$xppass/XXXXXX/g"
 $WINECMD /home/netlogon/CPAU.exe -u administrateur -p wawa -wait -enc -file $JOB -lwp -c -ex "$TASK" > /dev/null
 mv $JOB $unattendedSCRIPTS
@@ -45,7 +45,7 @@ mv $JOB $unattendedSCRIPTS
 JOB=shutdown.job
 rm -f $unattendedSCRIPTS/$JOB
 echo "Creation du job CPAU shutdownjob.job qui sortira le client au domaine $se3_domain"
-TASK="call c:\\netinst\\shutdownjob.cmd $se3_domain $adminse3 $xppass"
+TASK="call %systemdrive%\\netinst\\shutdownjob.cmd $se3_domain $adminse3 $xppass"
 echo "TASK : $TASK" | sed -e "s/$xppass/XXXXXX/g"
 $WINECMD /home/netlogon/CPAU.exe  -u administrateur -p wawa -enc  -wait -file $JOB -lwp -c -ex "$TASK" > /dev/null
 mv $JOB $unattendedSCRIPTS

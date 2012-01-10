@@ -8,7 +8,7 @@
 #
 # On utilise le mecanisme des GPO locales : copie d'un script shutdown.cmd par admin$,
 # qui sort le poste du domaine et configure le demarrage au boot suivant, 
-# copie dans c:\netinst de tout ce qu'il faut pour la mise au domaine au reboot,
+# copie dans %systemdrive%\netinst de tout ce qu'il faut pour la mise au domaine au reboot,
 # puis on initie un reboot par rpc.
 # 
 # si cela foire, on lance rejointSE3 depuis le poste.
