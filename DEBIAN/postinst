@@ -33,7 +33,7 @@ case "$1" in
 		sed -i 's|Cmnd_Alias ADM=|Cmnd_Alias ADM=/usr/share/se3/scripts/integreDomaine.sh,|' /etc/sudoers && /etc/init.d/sudo restart
 		/usr/share/se3/scripts/permse3 netlogon
 		/usr/share/se3/sbin/create_adminse3.sh
-		. /usr/share/se3/includes/config.inc.sh -clpbmsdf
+		/usr/share/se3/includes/config.inc.sh -clpbmsdf
 
 	)
     ;;
