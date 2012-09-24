@@ -127,7 +127,7 @@ function tryuploadgpo # remotename remotedom
     	            else
     	                # on fait l'enregistrement ldap de la machine et on efface l'ancien si besoin
                         /usr/share/se3/shares/shares.avail/connexion.sh adminse3 $name $ip $mac
-                        /usr/share/se3/sbin/update-csv.sh
+                        # /usr/share/se3/sbin/update-csv.sh
                     fi
                     /usr/bin/net rpc shutdown -t 30 -r -C "$action  : Le poste $oldname ($ip) va etre renomme $name avec $2/$adminname%XXXXXXX " -S $1 -U "$2/$adminname%$passadmin" 
     	            return 0 
@@ -157,7 +157,7 @@ fi
 if [ "$action" == "ldap" ]; then
     # on enregistre la machine dans la base ldap
     /usr/share/se3/shares/shares.avail/connexion.sh adminse3 $name $ip $4
-    /usr/share/se3/sbin/update-csv.sh
+#    /usr/share/se3/sbin/update-csv.sh
     [ -f /home/netlogon/machine/$name/action.bat ] && rm -f /home/netlogon/machine/$name/action.bat
 else    
     if [ "$action" == "rejoint" ]; then
