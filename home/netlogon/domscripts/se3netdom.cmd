@@ -58,22 +58,21 @@ goto suite
 
 :clone
     :: 1ere etape : changer le nom
-    :: recuperation fichier unattend.csv si il n'existe pas d�j� (clonage manuel) 
+    :: recuperation fichier unattend.csv si il n'existe pas deja(clonage manuel) 
     set NAME=
     if exist unattend.csv goto dejacsv
 		net use Z: \\%SE3IP%\install /user:adminse3 %XPPASS% >NUL
 		copy /y z:\site\unattend.csv unattend.csv
 		net use * /delete /y
     :dejacsv
-	:: recuperation mac
-    for /f "delims==- tokens=2-7" %%a in ('nbtstat -a %computername% ^| find "Adresse MAC"')  do @set mac=%%a%%b%%c%%d%%e%%f
-    :: saloperie de dos !
-    set MACADDR=%mac:~1%
-    echo Adresse MAC de la carte ayant servi a l'install  : %MACADDR%
-    :: recuperation du nom de la machine
-    for /f "tokens=3 delims=," %%a in ('findstr %MACADDR% %systemdrive%\netinst\unattend.csv ^| findstr ComputerName') do set NAME=%%~a
+	:: recuperation du couple mac nom dans unattend.csv 
+	for /f "delims=-, tokens=1-6" %%A in ('getmac /fo:csv /nh') do (
+		for /f "tokens=3 delims=," %%N in ('findstr %%A%%B%%C%%D%%E%%F  %systemdrive%\netinst\unattend.csv ^| findstr ComputerName') do (
+			echo mac: %%A%%B%%C%%D%%E%%F name : %%~N
+			set NAME=%%~N
+		)
+	)
     :: si on n'a rien recupere il faut demander le nom a l'utilisateur
-    :: peut-on appeler un dialogue ici (contexte cpau ?) sinon il faut le faire dans integse3.cmd
     if "x%NAME%"=="x" set /P NAME=Entrez le nom du poste :
     if "%NAME%"=="clone" set /P NAME=ERREUR : le poste ne peut etre nomme clone, entrez un autre nom :
     :: changement de nom pas de newsid ???? 
