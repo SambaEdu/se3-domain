@@ -33,9 +33,8 @@ function mkgpopasswd
 [ -f /home/netlogon/machine/$1 ] && rm -f /home/netlogon/machine/$1
 [ ! -d /home/netlogon/machine/$1 ] && mkdir -p /home/netlogon/machine/$1
 (
-echo username=$adminname
+echo username=$1\\$adminname
 echo password=$passadmin
-echo domain=$1
 )>$logondir/gpoPASSWD
 chmod  600 $logondir/gpoPASSWD
 chown adminse3 $logondir/gpoPASSWD
@@ -44,7 +43,7 @@ chown adminse3 $logondir/gpoPASSWD
 function uploadGPO # argument : $remotename $localname $remotedom 
 {
 mkgpopasswd $3
-smbclient  //"$1"/ADMIN$ -A /home/netlogon/machine/"$2"/gpoPASSWD << EOF
+smbclient  //$ip/ADMIN$ -A /home/netlogon/machine/"$2"/gpoPASSWD << EOF
 	mkdir \System32\GroupPolicy
 	mkdir \System32\GroupPolicy\Machine
 	mkdir \System32\GroupPolicy\Machine\Scripts
@@ -63,23 +62,23 @@ EOF
 }
 function setADM
 {
-	smbcacls //"$1"/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy" -C "$1\\administrateur" || return $?
-	smbcacls //"$1"/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy/gpt.ini" -C "$1\\administrateur" || return $?
-	smbcacls //"$1"/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy/Machine" -C "$1\\administrateur" || return $?
-#	smbcacls //"$1"/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy/Machine/registry.pol" -C "$1\\administrateur" || return $?
-	smbcacls //"$1"/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/Machine/Scripts" -C "$1\\administrateur" || return $?
-	smbcacls //"$1"/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/Machine/Scripts/scripts.ini" -C "$1\\administrateur" || return $?
-	smbcacls //"$1"/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/Machine/Scripts/Startup" -C "$1\\administrateur" || return $?
-	smbcacls //"$1"/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/Machine/Scripts/Startup/startup.cmd" -C "$1\\administrateur" || return $?
-	smbcacls //"$1"/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/Machine/Scripts/Shutdown" -C "$1\\administrateur" || return $?
-	smbcacls //"$1"/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/Machine/Scripts/Shutdown/shutdown.cmd" -C "$1\\administrateur" || return $?
+	smbcacls //$ip/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy" -C "$1\\administrateur" || return $?
+	smbcacls //$ip/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy/gpt.ini" -C "$1\\administrateur" || return $?
+	smbcacls //$ip/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy/Machine" -C "$1\\administrateur" || return $?
+#	smbcacls //$ip/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy/Machine/registry.pol" -C "$1\\administrateur" || return $?
+	smbcacls //$ip/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/Machine/Scripts" -C "$1\\administrateur" || return $?
+	smbcacls //$ip/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/Machine/Scripts/scripts.ini" -C "$1\\administrateur" || return $?
+	smbcacls //$ip/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/Machine/Scripts/Startup" -C "$1\\administrateur" || return $?
+	smbcacls //$ip/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/Machine/Scripts/Startup/startup.cmd" -C "$1\\administrateur" || return $?
+	smbcacls //$ip/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/Machine/Scripts/Shutdown" -C "$1\\administrateur" || return $?
+	smbcacls //$ip/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/Machine/Scripts/Shutdown/shutdown.cmd" -C "$1\\administrateur" || return $?
 	
 }
 
 function uploadDom # argument : $remotename $localname $remotedom 
 {
 mkgpopasswd $3
-smbclient  //"$1"/C$ -A /home/netlogon/machine/"$2"/gpoPASSWD << EOF
+smbclient  //$ip/C$ -A /home/netlogon/machine/"$2"/gpoPASSWD << EOF
 	mkdir Netinst
 	mkdir Netinst\logs
 	put /home/netlogon/machine/$2/action.bat Netinst\action.bat
@@ -102,12 +101,12 @@ return $?
 
 function setACL
 {
-#	smbcacls //"$1"/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy/Machine/registry.pol" -a "ACL:adminse3:ALLOWED/0/FULL,ACL:SYSTEM:ALLOWED/0/FULL"
-	smbcacls //"$1"/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/gpt.ini" -a "ACL:adminse3:ALLOWED/0/FULL,ACL:SYSTEM:ALLOWED/0/FULL"
-	smbcacls //"$1"/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/Machine/Scripts/scripts.ini" -a "ACL:adminse3:ALLOWED/0/FULL,ACL:SYSTEM:ALLOWED/0/FULL"
-	smbcacls //"$1"/ADMIN$  -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy/Machine/Scripts/Startup/startup.cmd" -a "ACL:adminse3:ALLOWED/0/FULL,ACL:SYSTEM:ALLOWED/0/FULL"
-	smbcacls //"$1"/ADMIN$  -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy/Machine/Scripts/Shutdown/shutdown.cmd" -a "ACL:adminse3:ALLOWED/0/FULL,ACL:SYSTEM:ALLOWED/0/FULL"
-	smbcacls //"$1"/ADMIN$  -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy/gpt.ini" -a "ACL:adminse3:ALLOWED/0/FULL"
+#	smbcacls //$ip/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy/Machine/registry.pol" -a "ACL:adminse3:ALLOWED/0/FULL,ACL:SYSTEM:ALLOWED/0/FULL"
+	smbcacls //$ip/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/gpt.ini" -a "ACL:adminse3:ALLOWED/0/FULL,ACL:SYSTEM:ALLOWED/0/FULL"
+	smbcacls //$ip/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD  "/System32/Grouppolicy/Machine/Scripts/scripts.ini" -a "ACL:adminse3:ALLOWED/0/FULL,ACL:SYSTEM:ALLOWED/0/FULL"
+	smbcacls //$ip/ADMIN$  -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy/Machine/Scripts/Startup/startup.cmd" -a "ACL:adminse3:ALLOWED/0/FULL,ACL:SYSTEM:ALLOWED/0/FULL"
+	smbcacls //$ip/ADMIN$  -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy/Machine/Scripts/Shutdown/shutdown.cmd" -a "ACL:adminse3:ALLOWED/0/FULL,ACL:SYSTEM:ALLOWED/0/FULL"
+	smbcacls //$ip/ADMIN$  -A /home/netlogon/machine/$2/gpoPASSWD "/System32/Grouppolicy/gpt.ini" -a "ACL:adminse3:ALLOWED/0/FULL"
 }
 
 function tryuploadgpo # remotename remotedom
@@ -129,7 +128,7 @@ function tryuploadgpo # remotename remotedom
                         /usr/share/se3/shares/shares.avail/connexion.sh adminse3 $name $ip $mac
                         # /usr/share/se3/sbin/update-csv.sh
                     fi
-                    /usr/bin/net rpc shutdown -t 30 -r -C "$action  : Le poste $oldname ($ip) va etre renomme $name avec $2/$adminname%XXXXXXX " -S $1 -U "$2/$adminname%$passadmin" 
+                    /usr/bin/net rpc shutdown -t 30 -r -C "$action  : Le poste $oldname ($ip) va etre renomme $name avec $2/$adminname%XXXXXXX " -I $ip -U "$2/$adminname%$passadmin" 
     	            return 0 
                 else
                     echo "integration a distance : connexion a $1 impossible avec $2/$adminname...<br>" 
