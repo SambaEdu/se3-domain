@@ -1,6 +1,9 @@
-
 #!/bin/bash
-#$Id$
+
+
+## $Id$ ##
+
+
 # reconfigure les jobs de mise au domaine se3
 
 # recuperation de xppass, se3_domain, netbios_name, se3ip 
