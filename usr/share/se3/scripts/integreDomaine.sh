@@ -1,5 +1,7 @@
 #!/bin/bash
-# $Id$
+
+
+## $Id$ ##
 #
 # /usr/share/se3/scripts/integreDomaine.sh $action $name $ip $mac [$adminname $adminpasswd]
 # ce script permet de sortir un poste du domaine si il y est deja, et de l'y remettre
