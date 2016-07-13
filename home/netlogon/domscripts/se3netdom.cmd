@@ -33,6 +33,7 @@ echo Integration de %Computername% au domaine %SE3_DOMAIN%
 :: pour Seven
 reg.exe add "HKLM\System\CurrentControlSet\Services\LanmanWorkstation\Parameters" /v "DomainCompatibilityMode" /t REG_DWORD /d "1" /F
 reg.exe add "HKLM\System\CurrentControlSet\Services\LanmanWorkstation\Parameters" /v "DNSNameResolutionRequired" /t REG_DWORD /d "0" /F
+reg.exe add "HKLM\SOFTWARE\Policies\Microsoft\Windows\NetworkProvider\HardenedPaths" /v "\\*\netlogon" /t REG_SZ /d "RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0" /F
 reg.exe add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Lsa" /v "ForceGuest" /t REG_DWORD /d "0" /F 2>NUL
 reg.exe add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\system" /v "LocalAccountTokenFilterPolicy" /t REG_DWORD /d 1 /f
 
