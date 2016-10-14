@@ -19,6 +19,20 @@ if exist %systemdrive%\netinst\ipfixe.csv call %systemdrive%\netinst\ifconfig.cm
 :: necessaire pour cpau : deux lignes car nom de service different pour XP et Seven.
 net start "connexion secondaire" 2>NUL
 net start "Ouverture de session secondaire" 2>NUL
+
+:: hack (temporaire on l'espere) pour pouvoir utiliser 10 sur un domaine type NT
+ver | findstr /i /c:"version 10.0." >nul
+if "%errorlevel%"=="0" (
+	:: on desactive smb2/3
+	sc.exe config lanmanworkstation depend= browser/mrxsmb10/nsi
+	sc.exe config mrxsmb20 start = disabled
+	:: on active smb1
+	sc.exe config lanmanworkstation depend= browser/mrxsmb10/mrxsmb20/nsi
+	sc.exe config mrxsmb10 start = auto
+	reg.exe add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\NetworkProvider" /v "HardenedPaths" /d "\\\\*\\netlogon"="RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0" /F >NUL
+	reg.exe add "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\NetworkProvider" /v "HardenedPaths" /d "\\\\*\\netlogon"="RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0" /F >NUL
+)
+
 ping -n 5 %SE3IP%
 :: on efface les GPO 
 if exist %systemroot%\system32\grouppolicy rd /S /Q %systemroot%\system32\grouppolicy && echo GPO effacees
