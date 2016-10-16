@@ -1,4 +1,4 @@
-:: permet de lancer les scripts de mise au domaine au 2eme reboot
+﻿:: permet de lancer les scripts de mise au domaine au 2eme reboot
 :: le nom est deja change, sauf en cas de clonage ou on le recupere
 :: dans action.bat
 :: script lance en administrateur local
@@ -25,10 +25,10 @@ ver | findstr /i /c:"version 10.0." >nul
 if "%errorlevel%"=="0" (
 	:: on desactive smb2/3
 	sc.exe config lanmanworkstation depend= browser/mrxsmb10/nsi
-	sc.exe config mrxsmb20 start = disabled
+	sc.exe config mrxsmb20 start=disabled
 	:: on active smb1
 	sc.exe config lanmanworkstation depend= browser/mrxsmb10/mrxsmb20/nsi
-	sc.exe config mrxsmb10 start = auto
+	sc.exe config mrxsmb10 start=auto
 	reg.exe add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\NetworkProvider" /v "HardenedPaths" /d "\\\\*\\netlogon"="RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0" /F >NUL
 	reg.exe add "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\NetworkProvider" /v "HardenedPaths" /d "\\\\*\\netlogon"="RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0" /F >NUL
 )
