@@ -21,16 +21,16 @@ net start "connexion secondaire" 2>NUL
 net start "Ouverture de session secondaire" 2>NUL
 
 :: hack (temporaire on l'espere) pour pouvoir utiliser 10 sur un domaine type NT
-ver | findstr /i /c:"version 10.0." >nul
+ver | findstr /i /c:"version 10." >nul
 if "%errorlevel%"=="0" (
 	:: on desactive smb2/3
-	sc.exe config lanmanworkstation depend= browser/mrxsmb10/nsi
-	sc.exe config mrxsmb20 start=disabled
+	sc.exe config lanmanworkstation depend= bowser/mrxsmb20/mrxsmb10/nsi
+	sc.exe config mrxsmb20 start= disabled
 	:: on active smb1
-	sc.exe config lanmanworkstation depend= browser/mrxsmb10/mrxsmb20/nsi
-	sc.exe config mrxsmb10 start=auto
-	reg.exe add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\NetworkProvider" /v "HardenedPaths" /d "\\\\*\\netlogon"="RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0" /F >NUL
-	reg.exe add "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\NetworkProvider" /v "HardenedPaths" /d "\\\\*\\netlogon"="RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0" /F >NUL
+	sc.exe config lanmanworkstation depend= bowser/mrxsmb10/nsi
+	sc.exe config mrxsmb10 start= auto
+	reg.exe add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\NetworkProvider\HardenedPaths" /v "\\\\*\\netlogon" /d "RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0" /F >NUL
+	reg.exe add "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\NetworkProvider\HardenedPaths" /v "\\\\*\\netlogon" /d "RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0" /F >NUL
 )
 
 ping -n 5 %SE3IP%
