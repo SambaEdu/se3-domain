@@ -1,5 +1,5 @@
 ; Script de mise au domaine manuelle
-; $Id$
+; $Id: rejointSE3.au3 6727 2012-01-01 17:58:39Z olikin $
 ; Stephane Boireau, d'après le script rejointSE3.cmd de Denis Bonnenfant
 ; N'est normalement lancé qu'en cas d'adhésion 'un nouveau poste
 ; ou que la mise au domaine depuis l'interface SE3 a échoué.
@@ -8,6 +8,8 @@
 ; Derniere modification: 17/12/2011
 
 ;Include constants
+#include <AutoItConstants.au3>
+#include <MsgBoxConstants.au3>
 #include <GUIConstants.au3>
 
 #include <se3_crob.lib.au3>
@@ -88,74 +90,203 @@ If $old_way == "y" Then
 Else
 	;$PAUSE_DEBUG=" & pause"
 	$PAUSE_DEBUG=""
-	If $CmdLine[0] == 0 Then
+      If FileExists(@ScriptDir & "\debug.txt") Then
+	 $PAUSE_DEBUG=" & pause"
+      EndIf
+      If $CmdLine[0] == 0 Then
 		$NOTE="On ne tente pas de lire des paramètres"
-	Else
+      Else
 		If StringInStr($CmdLine[1],"debug") Then
 			$PAUSE_DEBUG=" & pause"
 		EndIf
-	EndIf
+      EndIf
 
-	$cible_netlogon="\\" & $SE3_NETBIOS_NAME & "\netlogon"
-	;$cible_netlogon="\\" & $SE3_NETBIOS_NAME & "\netlogonzblouc" ; Pour simuler/forcer l'echec de l'acces sans lecteur
-	$run=RunWait(@ComSpec & " /c net use " & $cible_netlogon, @SW_SHOW)
-	;MsgBox(0,"Info","La tentative d'accès à " & $cible_netlogon & " a retourné " & $run)
-	; Le test n'est pas fiable
-	;If $run <> 0 Then
-	If FileExists($cible_netlogon & "\domscripts\se3.cmd") Then
-		$netlogon="\\" & $SE3_NETBIOS_NAME & "\netlogon"
-	Else
-		;$run=RunWait(@ComSpec & " /c net use Z: " & $cible_netlogon & $PAUSE_DEBUG, @SW_SHOW)
-		; On force le démontage/remontage pour éviter des blagues avec plusieurs connexions au même partage ou sous plusieurs identités
-		$run=RunWait(@ComSpec & " /c net use " & $cible_netlogon & " /DELETE /Y & net use Z: " & $cible_netlogon & $PAUSE_DEBUG, @SW_SHOW)
-		;MsgBox(0,"Info","La tentative d'accès à " & $cible_netlogon & " a retourné " & $run)
-		; Le test n'est pas fiable
-		;If $run <> 0 Then
-		;If Not FileExists($cible_netlogon & "\domscripts\se3.cmd") Then
-		If Not FileExists("z:\domscripts\se3.cmd") Then
-			; Le montage a échoué
+   $FICHLOG=""
+   If FileExists(@ScriptDir & "\log.txt") Then
+      DirCreate($SystemDrive&"\netinst\logs")
+      $FICHLOG=$SystemDrive&"\netinst\logs\rejoinse3_crob.log"
 
-			;SplashTextOn("ERREUR","Il n'a pas été possible d'accéder à \\" & $SE3_NETBIOS_NAME & "\netlogon" & @CRLF & "Vous avez bien fourni le couple (admin;motdepasse) pour accéder à \\" & $SE3_NETBIOS_NAME & "\Progs\install\domscripts, n'est-ce pas ?",500,100,-1,0)
-			SplashTextOn("ERREUR","Il n'a pas été possible d'accéder à \\" & $SE3_NETBIOS_NAME & "\netlogon" & @CRLF & "Vous avez bien fourni le couple (adminse3;motdepasse) pour accéder à \\" & $SE3_NETBIOS_NAME & "\netlogon\domscripts, n'est-ce pas ?",500,100,-1,0)
-			Sleep(4000)
-			SplashTextOn("Nouvelle tentative","Nouvelle tentative en montant un lecteur réseau.",500,100,-1,0)
-			Sleep(2000)
+      FDEBUG_crob($FICHLOG, "Lancement de rejoinSE3 par " & @LogonDomain & "\" & @USERNAME)
 
-			;$LECTEUR=_chercher_lecteur_libre()
-			$LECTEUR="Z"
+      Local $aArray = DriveGetDrive($DT_ALL)
+      If @error Then
+	 ; An error occurred when retrieving the drives.
+	 MsgBox($MB_SYSTEMMODAL, "", "It appears an error occurred.")
+      Else
+	 For $i = 1 To $aArray[0]
+	    ; Show all the drives found and convert the drive letter to uppercase.
+	    ;MsgBox($MB_SYSTEMMODAL, "", "Drive " & $i & "/" & $aArray[0] & ":" & @CRLF & StringUpper($aArray[$i]))
+	    FDEBUG_crob($FICHLOG, "Lecteur présent " & $i & ": " & $aArray[$i] & "de type " & DriveGetType($aArray[$i], $DT_DRIVETYPE))
+	 Next
+      EndIf
+ 
+   EndIf
+      
+   If FileExists(@ScriptDir & "\temoin_w10.txt") Then
+	  $avant_w10="n"
+   Else
+	  $avant_w10="y"
+   EndIf
 
-			; On teste si NETLOGON est monté (cela pourrait gêner si c'était ailleurs qu'en Z:)
-			$TEST_netlogon=_chercher_lecteur_reseau("NETLOGON")
-			If $TEST_netlogon <> "" Then
-				$LECTEUR=$TEST_netlogon
-				$menage=RunWait(@Comspec & " /c net use " & $LECTEUR & ": /delete /y")
-			EndIf
+   If $avant_w10 == "y" Then
+	  $cible_netlogon="\\" & $SE3_NETBIOS_NAME & "\netlogon"
 
-			;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-			; Il faut réclamer le nom de domaine et le mot de passe admin
-			;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-			If $DOMAINE == "" Then
-				$DOMAINE=InputBox("Informations supplémentaires","Nom de domaine: ","SAMBAEDU3","",-1,70)
-			EndIf
+	   ;$cible_netlogon="\\" & $SE3_NETBIOS_NAME & "\netlogonzblouc" ; Pour simuler/forcer l'echec de l'acces sans lecteur
+	   $run=RunWait(@ComSpec & " /c net use " & $cible_netlogon, @SW_SHOW)
+	   ;MsgBox(0,"Info","La tentative d'accès à " & $cible_netlogon & " a retourné " & $run)
+	   ; Le test n'est pas fiable
+	   ;If $run <> 0 Then
+	   If FileExists($cible_netlogon & "\domscripts\se3.cmd") Then
+		   $netlogon="\\" & $SE3_NETBIOS_NAME & "\netlogon"
+	   Else
+		   ;$run=RunWait(@ComSpec & " /c net use Z: " & $cible_netlogon & $PAUSE_DEBUG, @SW_SHOW)
+		   ; On force le démontage/remontage pour éviter des blagues avec plusieurs connexions au même partage ou sous plusieurs identités
+		   $run=RunWait(@ComSpec & " /c net use " & $cible_netlogon & " /DELETE /Y & net use Z: " & $cible_netlogon & $PAUSE_DEBUG, @SW_SHOW)
+		   ;MsgBox(0,"Info","La tentative d'accès à " & $cible_netlogon & " a retourné " & $run)
+		   ; Le test n'est pas fiable
+		   ;If $run <> 0 Then
+		   ;If Not FileExists($cible_netlogon & "\domscripts\se3.cmd") Then
+		   If Not FileExists("z:\domscripts\se3.cmd") Then
+			   ; Le montage a échoué
 
-			;$MDP_ADMIN_SE3=InputBox("Informations supplémentaires","Mot de passe administrateur SE3: ","","*",-1,60)
-			$MDP_ADMINSE3=InputBox("Informations supplémentaires","Mot de passe du compte adminse3: ","","*",-1,60)
+			   ;SplashTextOn("ERREUR","Il n'a pas été possible d'accéder à \\" & $SE3_NETBIOS_NAME & "\netlogon" & @CRLF & "Vous avez bien fourni le couple (admin;motdepasse) pour accéder à \\" & $SE3_NETBIOS_NAME & "\Progs\install\domscripts, n'est-ce pas ?",500,100,-1,0)
+			   SplashTextOn("ERREUR","Il n'a pas été possible d'accéder à \\" & $SE3_NETBIOS_NAME & "\netlogon" & @CRLF & "Vous avez bien fourni le couple (adminse3;motdepasse) pour accéder à \\" & $SE3_NETBIOS_NAME & "\netlogon\domscripts, n'est-ce pas ?",500,100,-1,0)
+			   Sleep(4000)
+			   SplashTextOn("Nouvelle tentative","Nouvelle tentative en montant un lecteur réseau.",500,100,-1,0)
+			   Sleep(2000)
 
-			;$LECTEUR="P"
-			;$run_acces_se3=RunWait(@Comspec & " /c net use " & $LECTEUR & ": \\" & $SE3_NETBIOS_NAME & "\netlogon /user:" & $DOMAINE & "\admin " & $MDP_ADMIN_SE3 & " /persistent:no")
-			;$run_acces_se3=RunWait(@Comspec & " /c net use " & $LECTEUR & ": \\" & $SE3_NETBIOS_NAME & "\netlogon /user:" & $DOMAINE & "\adminse3 " & $MDP_ADMINSE3 & " /persistent:no & pause")
-			; On force le démontage/remontage pour éviter des blagues avec plusieurs connexions au même partage ou sous plusieurs identités
-			$run_acces_se3=RunWait(@Comspec & " /c net use \\" & $SE3_NETBIOS_NAME & "\netlogon /DELETE /Y & net use " & $LECTEUR & ": \\" & $SE3_NETBIOS_NAME & "\netlogon /user:" & $DOMAINE & "\adminse3 " & $MDP_ADMINSE3 & " /persistent:no " & $PAUSE_DEBUG)
-			If $run_acces_se3 == 0 Or $TEST_netlogon <> "" Then
-				$netlogon=$LECTEUR & ":"
-			Else
-				MsgBox(4096,"ERREUR","Il n'a pas été non plus possible de monter un lecteur " & $LECTEUR & ": pointant sur \\" & $SE3_NETBIOS_NAME & "\netlogon" & @CRLF & "ABANDON !")
-				Exit
-			EndIf
-		Else
-			$netlogon="Z:"
-		EndIf
-	EndIf
+			   ;$LECTEUR=_chercher_lecteur_libre()
+			   $LECTEUR="Z"
+
+			   ; On teste si NETLOGON est monté (cela pourrait gêner si c'était ailleurs qu'en Z:)
+			   $TEST_netlogon=_chercher_lecteur_reseau("NETLOGON")
+			   If $TEST_netlogon <> "" Then
+				   $LECTEUR=$TEST_netlogon
+				   $menage=RunWait(@Comspec & " /c net use " & $LECTEUR & ": /delete /y")
+			   EndIf
+
+			   ;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+			   ; Il faut réclamer le nom de domaine et le mot de passe admin
+			   ;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+			   If $DOMAINE == "" Then
+				   $DOMAINE=InputBox("Informations supplémentaires","Nom de domaine: ","SAMBAEDU3","",-1,70)
+			   EndIf
+
+			   ;$MDP_ADMIN_SE3=InputBox("Informations supplémentaires","Mot de passe administrateur SE3: ","","*",-1,60)
+			   $MDP_ADMINSE3=InputBox("Informations supplémentaires","Mot de passe du compte adminse3: ","","*",-1,60)
+
+			   ;$LECTEUR="P"
+			   ;$run_acces_se3=RunWait(@Comspec & " /c net use " & $LECTEUR & ": \\" & $SE3_NETBIOS_NAME & "\netlogon /user:" & $DOMAINE & "\admin " & $MDP_ADMIN_SE3 & " /persistent:no")
+			   ;$run_acces_se3=RunWait(@Comspec & " /c net use " & $LECTEUR & ": \\" & $SE3_NETBIOS_NAME & "\netlogon /user:" & $DOMAINE & "\adminse3 " & $MDP_ADMINSE3 & " /persistent:no & pause")
+			   ; On force le démontage/remontage pour éviter des blagues avec plusieurs connexions au même partage ou sous plusieurs identités
+			   $run_acces_se3=RunWait(@Comspec & " /c net use \\" & $SE3_NETBIOS_NAME & "\netlogon /DELETE /Y & net use " & $LECTEUR & ": \\" & $SE3_NETBIOS_NAME & "\netlogon /user:" & $DOMAINE & "\adminse3 " & $MDP_ADMINSE3 & " /persistent:no " & $PAUSE_DEBUG)
+			   If $run_acces_se3 == 0 Or $TEST_netlogon <> "" Then
+				   $netlogon=$LECTEUR & ":"
+			   Else
+				   MsgBox(4096,"ERREUR","Il n'a pas été non plus possible de monter un lecteur " & $LECTEUR & ": pointant sur \\" & $SE3_NETBIOS_NAME & "\netlogon" & @CRLF & "ABANDON !")
+				   Exit
+			   EndIf
+		   Else
+			   $netlogon="Z:"
+		   EndIf
+	   EndIf
+
+   Else
+	  ; On passe de
+	  ;     \\se3\netlogon\domscripts
+	  ; à
+	  ;     \\se3\Progs\install\domscripts
+	  $cible_netlogon="\\" & $SE3_NETBIOS_NAME & "\Progs"
+
+	 ; Ménage préalable
+	  $TEST_Progs=_chercher_lecteur_reseau("Progs")
+	  If $TEST_Progs <> "" Then
+		  $LECTEUR=$TEST_Progs
+		  $menage=RunWait(@Comspec & " /c net use " & $LECTEUR & ": /delete /y")
+		  FDEBUG_crob($FICHLOG, "Demontage du lecteur " & $LECTEUR & " pointant sur " & $cible_netlogon)
+	  EndIf 
+
+	   ;$cible_netlogon="\\" & $SE3_NETBIOS_NAME & "\netlogonzblouc" ; Pour simuler/forcer l'echec de l'acces sans lecteur
+	   $run=RunWait(@ComSpec & " /c net use z: " & $cible_netlogon, @SW_SHOW)
+	   ;MsgBox(0,"Info","La tentative d'accès à " & $cible_netlogon & " a retourné " & $run)
+	   ; Le test n'est pas fiable
+	   ;If $run <> 0 Then
+	   ;If FileExists($cible_netlogon & "\install\domscripts\se3.cmd") Then
+	   If FileExists($cible_netlogon & "\install\domscripts\se3.cmd") Then
+		   ;$netlogon="\\" & $SE3_NETBIOS_NAME & "\netlogon"
+		   $netlogon="\\" & $SE3_NETBIOS_NAME & "\Progs\install"
+		  FDEBUG_crob($FICHLOG, $cible_netlogon & "\install\domscripts\se3.cmd est accessible; on utilise " & $netlogon & " pour la suite.")
+	   ElseIf  FileExists("Z:\install\domscripts\se3.cmd") Then
+		   $netlogon="z:\install"
+		  FDEBUG_crob($FICHLOG, "z:\install\domscripts\se3.cmd est accessible; on utilise " & $netlogon & " pour la suite.")
+	   Else
+		  FDEBUG_crob($FICHLOG, "Echec des acces par " & $cible_netlogon & " et par la tentative de montage de Progs en Z: ; on va tenter de demonter " & $cible_netlogon & " pour remontern ensuite.")
+		   ; On force le démontage/remontage pour éviter des blagues avec plusieurs connexions au même partage ou sous plusieurs identités
+		   $run=RunWait(@ComSpec & " /c net use " & $cible_netlogon & " /DELETE /Y & net use Z: " & $cible_netlogon & $PAUSE_DEBUG, @SW_SHOW)
+		   ;MsgBox(0,"Info","La tentative d'accès à " & $cible_netlogon & " a retourné " & $run)
+		   ; Le test n'est pas fiable
+		   ;If $run <> 0 Then
+		   ;If Not FileExists($cible_netlogon & "\domscripts\se3.cmd") Then
+		   ;If Not FileExists("z:\domscripts\se3.cmd") Then
+		   If Not FileExists("z:\install\domscripts\se3.cmd") Then
+			   FDEBUG_crob($FICHLOG, "Le montage a à nouveau échoué.")
+			   ; Le montage a échoué
+
+			   ;SplashTextOn("ERREUR","Il n'a pas été possible d'accéder à \\" & $SE3_NETBIOS_NAME & "\netlogon" & @CRLF & "Vous avez bien fourni le couple (admin;motdepasse) pour accéder à \\" & $SE3_NETBIOS_NAME & "\Progs\install\domscripts, n'est-ce pas ?",500,100,-1,0)
+			   SplashTextOn("ERREUR","Il n'a pas été possible d'accéder à \\" & $SE3_NETBIOS_NAME & "\Progs" & @CRLF & "Vous avez bien fourni le couple (adminse3;motdepasse) pour accéder à \\" & $SE3_NETBIOS_NAME & "\Progs\install\domscripts, n'est-ce pas ?",500,100,-1,0)
+			   Sleep(4000)
+			   SplashTextOn("Nouvelle tentative","Nouvelle tentative en montant un lecteur réseau.",500,100,-1,0)
+			   Sleep(2000)
+
+			   ;$LECTEUR=_chercher_lecteur_libre()
+			   $LECTEUR="Z"
+
+			   ; On teste si Progs est monté (cela pourrait gêner si c'était ailleurs qu'en Z:)
+			   $TEST_Progs=_chercher_lecteur_reseau("Progs")
+			   If $TEST_Progs <> "" Then
+				   $LECTEUR=$TEST_Progs
+				   $menage=RunWait(@Comspec & " /c net use " & $LECTEUR & ": /delete /y")
+				    FDEBUG_crob($FICHLOG, "Demontage du lecteur " & $LECTEUR & " pointant sur Progs.")
+				    ; Si à ce stade, Progs était monté en L:, on va ressortir avec $LECTEUR = L
+				    ; Est-ce que cela pose pb?
+			   EndIf
+
+
+			   ;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+			   ; Il faut réclamer le nom de domaine et le mot de passe admin
+			   ;++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+			   If $DOMAINE == "" Then
+				   $DOMAINE=InputBox("Informations supplémentaires","Nom de domaine: ","SAMBAEDU3","",-1,70)
+			   EndIf
+
+			   ;$MDP_ADMIN_SE3=InputBox("Informations supplémentaires","Mot de passe administrateur SE3: ","","*",-1,60)
+			   $MDP_ADMINSE3=InputBox("Informations supplémentaires","Mot de passe du compte adminse3: ","","*",-1,60)
+
+			   ;$LECTEUR="P"
+			   ;$run_acces_se3=RunWait(@Comspec & " /c net use " & $LECTEUR & ": \\" & $SE3_NETBIOS_NAME & "\netlogon /user:" & $DOMAINE & "\admin " & $MDP_ADMIN_SE3 & " /persistent:no")
+			   ;$run_acces_se3=RunWait(@Comspec & " /c net use " & $LECTEUR & ": \\" & $SE3_NETBIOS_NAME & "\netlogon /user:" & $DOMAINE & "\adminse3 " & $MDP_ADMINSE3 & " /persistent:no & pause")
+			   ; On force le démontage/remontage pour éviter des blagues avec plusieurs connexions au même partage ou sous plusieurs identités
+			   ;$run_acces_se3=RunWait(@Comspec & " /c net use \\" & $SE3_NETBIOS_NAME & "\netlogon /DELETE /Y & net use " & $LECTEUR & ": \\" & $SE3_NETBIOS_NAME & "\netlogon /user:" & $DOMAINE & "\adminse3 " & $MDP_ADMINSE3 & " /persistent:no " & $PAUSE_DEBUG)
+			   FDEBUG_crob($FICHLOG, "On va tenter de démonter  Progs pour le remonter avec le mot de passe adminse3 fourni.")
+			   $run_acces_se3=RunWait(@Comspec & " /c net use \\" & $SE3_NETBIOS_NAME & "\Progs /DELETE /Y & net use " & $LECTEUR & ": \\" & $SE3_NETBIOS_NAME & "\Progs /user:" & $DOMAINE & "\adminse3 " & $MDP_ADMINSE3 & " /persistent:no " & $PAUSE_DEBUG)
+			   ; Je ne comprends plus ce qui justifie le test suivant...
+			   ;If $run_acces_se3 == 0 Or $TEST_Progs <> "" Then
+			   If  FileExists($LECTEUR & ":\install\domscripts\se3.cmd") Then
+				   $netlogon=$LECTEUR & ":\install"
+				    FDEBUG_crob($FICHLOG, "Le montage de Progs sur le lecteur  " & $LECTEUR & " effectué avec succès.")
+			   Else
+				   MsgBox(4096,"ERREUR","Il n'a pas été non plus possible de monter un lecteur " & $LECTEUR & ": pointant sur \\" & $SE3_NETBIOS_NAME & "\netlogon" & @CRLF & "ABANDON !")
+				    FDEBUG_crob($FICHLOG, "Echec du montage avec le mot de passe adminse3 proposé.")
+				   Exit
+			   EndIf
+		   Else
+			   $netlogon="Z:\install"
+			   FDEBUG_crob($FICHLOG, "Ce coup-ci, z:\install\domscripts\se3.cmd est accessible; on utilise " & $netlogon & " pour la suite.")
+		   EndIf
+	   EndIf
+
+   EndIf
+
 EndIf
 
 SplashTextOn("Information","Copie des fichiers " & $netlogon & "\domscripts\*.* vers " & $SystemDrive & "\netinst\",500,100,-1,0)
@@ -328,6 +459,8 @@ If @OSArch = "X86" Then
             RunWait($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin, $SystemDrive & "\Netinst")
         Case "WIN_7"
             _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin)
+        Case "WIN_10"
+            _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin)
         Case "WIN_VISTA"
             _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated.exe " & $temoin_demander_pass_admin)
         ; etc
@@ -340,6 +473,8 @@ Else  ; ( x64 )
         Case "WIN_XP"
             RunWait($SystemDrive & "\Netinst\rejointSE3-elevated-64.exe " & $temoin_demander_pass_admin, $SystemDrive & "\Netinst")
         Case "WIN_7"
+            _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated-64.exe " & $temoin_demander_pass_admin)
+        Case "WIN_10"
             _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated-64.exe " & $temoin_demander_pass_admin)
         Case "WIN_VISTA"
             _Execute_elevated($SystemDrive & "\Netinst\rejointSE3-elevated-64.exe " & $temoin_demander_pass_admin)

@@ -1,5 +1,5 @@
 ; Bibliotheque de fonctions
-; $Id$
+; $Id: se3_crob.lib.au3 5520 2010-05-14 06:00:36Z crob $
 ; Stephane Boireau, ex-Animateur de Secteur d'une académie qui croit en l'appropriation des TICE par tous
 ; Modification: 25/04/2010
 
@@ -113,7 +113,7 @@ Func _Get_Adapters()
 	$objWMIService = ObjGet("winmgmts:\\localhost\root\CIMV2")
 	$wbemFlagReturnImmediately = 0x10
 	$wbemFlagForwardOnly = 0x20
-	
+
 	$Adapters = ""
 	SplashTextOn("Liste des interfaces réseau", "Please Wait...", 170, 40)
 	$colItems = $objWMIService.ExecQuery("SELECT * FROM Win32_NetworkAdapter", "WQL", $wbemFlagReturnImmediately + $wbemFlagForwardOnly)
@@ -122,7 +122,7 @@ Func _Get_Adapters()
 	Next
 	SplashOff()
 	If $Adapters = "" Then $Adapters="Aucune interface reseau n'a ete trouvee."
-		
+
 	; On retourne quelque chose comme "|Connexion au réseau local" ou "|Connexion au réseau local|Connexion au réseau local 2|Connexion réseau sans fil" avec le | en premier caractère.
 	Return $Adapters
 EndFunc
@@ -131,21 +131,21 @@ EndFunc
 Func _Set_DHCP($interface)
 	$show=@SW_SHOW
 	$WinTitle="Changement de l'adressage IP"
-	
+
 	$utiliser_interface_reseau_bat = "n"
 	; Ca ne fonctionne pas... il dit que l'interface n'est pas valide... pb d'accents DOS probablement.
 
 	ProgressOn($WinTitle, "Changing IP Address")
 	If FileExists(@ScriptDir & "\interface_reseau.bat") And $utiliser_interface_reseau_bat = "y" Then
-		$run = RunWait(@ComSpec & " /c " & 'call ' @ScriptDir & '\interface_reseau.bat & @echo netsh interface ip set address name="%INTERFACE%" source=dhcp & netsh interface ip set address name="%INTERFACE%" source=dhcp', "", $show)
+		$run = RunWait(@ComSpec & " /c " & 'call ' & @ScriptDir & '\interface_reseau.bat & @echo netsh interface ip set address name="%INTERFACE%" source=dhcp & netsh interface ip set address name="%INTERFACE%" source=dhcp', "", $show)
 		ProgressSet(20)
-		$run3 = RunWait(@ComSpec & " /c " & 'call ' @ScriptDir & '\interface_reseau.bat & @echo netsh int ip set dns "%INTERFACE%" dhcp & netsh int ip set dns "%INTERFACE%" dhcp', "", $show)
+		$run3 = RunWait(@ComSpec & " /c " & 'call ' & @ScriptDir & '\interface_reseau.bat & @echo netsh int ip set dns "%INTERFACE%" dhcp & netsh int ip set dns "%INTERFACE%" dhcp', "", $show)
 		ProgressSet(40)
-		RunWait(@ComSpec & " /c " & 'call ' @ScriptDir & '\interface_reseau.bat & @echo netsh interface ip set wins "%INTERFACE%" dhcp & netsh interface ip set wins "%INTERFACE%" dhcp', "", $show)
+		RunWait(@ComSpec & " /c " & 'call ' & @ScriptDir & '\interface_reseau.bat & @echo netsh interface ip set wins "%INTERFACE%" dhcp & netsh interface ip set wins "%INTERFACE%" dhcp', "", $show)
 		ProgressSet(60)
-		RunWait(@ComSpec & " /c " & 'call ' @ScriptDir & '\interface_reseau.bat & @echo ipconfig /release "%INTERFACE%" & ipconfig /release "%INTERFACE%"', "", $show)
+		RunWait(@ComSpec & " /c " & 'call ' & @ScriptDir & '\interface_reseau.bat & @echo ipconfig /release "%INTERFACE%" & ipconfig /release "%INTERFACE%"', "", $show)
 		ProgressSet(80)
-		$run2 = RunWait(@ComSpec & " /c " & 'call ' @ScriptDir & '\interface_reseau.bat & @echo ipconfig /renew "%INTERFACE%" & ipconfig /renew "%INTERFACE%"', "", $show)
+		$run2 = RunWait(@ComSpec & " /c " & 'call ' & @ScriptDir & '\interface_reseau.bat & @echo ipconfig /renew "%INTERFACE%" & ipconfig /renew "%INTERFACE%"', "", $show)
 	Else
 		$run = RunWait(@ComSpec & " /c " & '@echo netsh interface ip set address name="' & $interface & '" source=dhcp & netsh interface ip set address name="' & $interface & '" source=dhcp', "", $show)
 		ProgressSet(20)
@@ -166,14 +166,14 @@ EndFunc
 Func _Set_ip($interface, $IP, $NETMASK, $GW, $DNS, $WINS)
 	$show=@SW_SHOW
 	$WinTitle="Changement de l'adressage IP"
-	
+
 	; $pause non vide perturbe le test de succès du changement IP
 	;$pause=" & pause"
 	$pause=""
-	
+
 	$utiliser_interface_reseau_bat = "n"
 	; Ca ne fonctionne pas... il dit que l'interface n'est pas valide... pb d'accents DOS probablement.
-	
+
 	ProgressOn($WinTitle, "Changement de l'adresse (IP statique)")
 	If FileExists(@ScriptDir & "\interface_reseau.bat") And $utiliser_interface_reseau_bat = "y" Then
 		If $GW <> "" Then
@@ -182,7 +182,7 @@ Func _Set_ip($interface, $IP, $NETMASK, $GW, $DNS, $WINS)
 			$run = RunWait(@ComSpec & " /c " & 'call ' & @ScriptDir & '\interface_reseau.bat & @echo netsh interface ip set address name="%INTERFACE%" static ' & $IP & " " & $NETMASK & ' & netsh interface ip set address name="%INTERFACE%" static ' & $IP & " " & $NETMASK & $pause, "", $show)
 		EndIf
 		ProgressSet(50)
-		
+
 		If $DNS <> "" Then
 			$rundeldns = RunWait(@ComSpec & " /c " & 'call ' & @ScriptDir & '\interface_reseau.bat & @echo netsh interface ip delete dns "%INTERFACE%" all' & ' & netsh interface ip delete dns "%INTERFACE%" all' & $pause, "", $show)
 			If $DNS <> "none" And $DNS <> "aucun" Then
@@ -204,7 +204,7 @@ Func _Set_ip($interface, $IP, $NETMASK, $GW, $DNS, $WINS)
 			$run = RunWait(@ComSpec & " /c " & '@echo netsh interface ip set address name="' & $interface & '" static ' & $IP & " " & $NETMASK & ' & netsh interface ip set address name="' & $interface & '" static ' & $IP & " " & $NETMASK & $pause, "", $show)
 		EndIf
 		ProgressSet(50)
-		
+
 		If $DNS <> "" Then
 			$rundeldns = RunWait(@ComSpec & " /c " & '@echo netsh interface ip delete dns "' & $interface & '" all' & ' & netsh interface ip delete dns "' & $interface & '" all' & $pause, "", $show)
 			If $DNS <> "none" And $DNS <> "aucun" Then
@@ -224,8 +224,8 @@ Func _Set_ip($interface, $IP, $NETMASK, $GW, $DNS, $WINS)
 	ProgressSet(100)
 	Sleep(500)
 	ProgressOff()
-	
-	If $run = 0 Then 
+
+	If $run = 0 Then
 		MsgBox(0,$WinTitle, "L'adresse a été modifiée avec succès.",3)
 		Sleep(1000)
 	Else
@@ -242,7 +242,7 @@ Func _lire_unattend_csv($CHEMIN, $MAC)
 	$MAC=StringRegExpReplace($MAC,"[^A-Za-z0-9]","")
 
 	$NOMPC=""
-	
+
 	$FICH=FileOpen($CHEMIN,0)
 	If $FICH = -1 Then
 		;MsgBox(0, "Erreur", "Il n'a pas été possible de créer le fichier!")
@@ -258,7 +258,7 @@ Func _lire_unattend_csv($CHEMIN, $MAC)
 				; On devrait sortir à ce stade par
 				;ExitLoop
 				; mais, cela complique le traitement d'ajout d'entrées dans le unattend.csv
-				; En continuant dans la boucle, c'est le dernier nom ajouté dans le fichier 
+				; En continuant dans la boucle, c'est le dernier nom ajouté dans le fichier
 				; (pour l'adresse MAC) qui est pris en compte.
 			EndIf
 		WEnd
@@ -286,17 +286,17 @@ Func _completer_unattend_csv($CHEMIN, $NOMPC, $MAC)
 		Else
 			FileWriteLine($FICH, """" & $MAC & """,""ComputerName"",""" & $NOMPC & """")
 			FileWriteLine($FICH, """" & $NOMPC & """,""FullName"",""" & $NOMPC & """")
-		EndIf		
+		EndIf
 		FileClose($FICH)
 		Return True
 	;Else
-	;	MsgBox(0, "Erreur", "Le fichier " & $CHEMIN & " n'a pas été trouvé !")		
+	;	MsgBox(0, "Erreur", "Le fichier " & $CHEMIN & " n'a pas été trouvé !")
 	;EndIf
 EndFunc
 
 Func _chercher_lecteur_libre()
 	$RETOUR=""
-	
+
 	; En commençant à A, on obtient des erreurs???
 	;$alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	$alphabet="CDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -306,8 +306,8 @@ Func _chercher_lecteur_libre()
 		;If FileExists($lecteur & ":\NUL") Then
 		If Not FileExists($lecteur & ":\") Then
 			; Ce n'est ni une partition ni un lecteur réseau
-			
-			;MsgBox(0,"Info",$lecteur & ":\ non trouvé")			
+
+			;MsgBox(0,"Info",$lecteur & ":\ non trouvé")
 			; Ca peut encore être un lecteur CD ou disquette vide
 			$TEST=RegRead("HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2\" & $lecteur, "BaseClass")
 			;MsgBox(0,"Info","lecteur=" & $lecteur & @CRLF & "TEST=" & $TEST & @CRLF & "@error=" & @error)
@@ -318,9 +318,9 @@ Func _chercher_lecteur_libre()
 			EndIf
 		EndIf
 	Next
-	
+
 	;A REVOIR: Remplacer par DriveGetDrive()
-	
+
 	Return $RETOUR
 EndFunc
 
@@ -328,7 +328,7 @@ EndFunc
 
 Func _chercher_lecteur_reseau($PARTAGE)
 	$RETOUR=""
-	
+
 	;$var = DriveGetDrive( "all" )
 	$var = DriveGetDrive( "NETWORK" )
 	If NOT @error Then
@@ -342,6 +342,20 @@ Func _chercher_lecteur_reseau($PARTAGE)
 			EndIf
 		Next
 	EndIf
-	
+
 	Return $RETOUR
+EndFunc
+
+Func FDEBUG_crob($FICHIER, $TEXTE)
+   If $FICHIER == "" Then
+      ; On ne fait rien
+   Else
+       $FICH=FileOpen($FICHIER,1)
+       If $FICH = -1 Then
+	       ;MsgBox(0, "Erreur", "Il n'a pas été possible d'ouvrir le fichier " & $FICHIER & " en écriture !")
+      Else
+	       FileWriteLine($FICH, @YEAR & "-" & @MON  & "-" & @MDAY  & " " & @HOUR  & ":" & @MIN  & ":" & @SEC  & " : " &  $TEXTE & @CRLF)
+       EndIf
+       FileClose($FICH)
+   EndIf
 EndFunc
