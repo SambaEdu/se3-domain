@@ -29,8 +29,8 @@ if "%errorlevel%"=="0" (
 	:: on active smb1
 	sc.exe config lanmanworkstation depend= bowser/mrxsmb10/nsi
 	sc.exe config mrxsmb10 start= auto
-	reg.exe add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\NetworkProvider\HardenedPaths" /v "\\\\*\\netlogon" /d "RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0" /F >NUL
-	reg.exe add "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\NetworkProvider\HardenedPaths" /v "\\\\*\\netlogon" /d "RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0" /F >NUL
+	reg.exe add "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\NetworkProvider\HardenedPaths" /v "\\*\netlogon" /d "RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0" /F >NUL
+	reg.exe add "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Policies\Microsoft\Windows\NetworkProvider\HardenedPaths" /v "\\*\netlogon" /d "RequireMutualAuthentication=0,RequireIntegrity=0,RequirePrivacy=0" /F >NUL
 )
 
 ping -n 5 %SE3IP%
