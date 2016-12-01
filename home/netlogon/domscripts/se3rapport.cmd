@@ -8,7 +8,7 @@ set ACTION=%1%
 set BILAN=%2%
 
 echo ############### Remontee des rapports pour les actions se3-domain ##################
-:: Récupération des heures laissées sur le disque à divers moments de l'install
+:: RÃ©cupÃ©ration des heures laissÃ©es sur le disque Ã  divers moments de l'install
 if not exist %SystemDrive%\netinst\debutwin.txt Goto erreurdebutwin
 for /F "tokens=1 delims= " %%o in (%SystemDrive%\netinst\debutwin.txt) do (set DEBUTWIN=%%o)
 echo Heure de debut d'installation windows : %DEBUTWIN%
@@ -36,10 +36,7 @@ if not exist %SystemDrive%\netinst\finwin.txt Goto erreurfinwin
 :finfinwin
 
 echo Heure de fin d'installation se3 et programmes wpkg generee : %FINWIN%
-
-for /f "delims==- tokens=2-7" %%a in ('nbtstat -a %computername% ^| find "Adresse MAC"')  do @set mac=%%a-%%b-%%c-%%d-%%e-%%f
-:: saloperie de dos !
-set MACADDR=%mac:~1%
+for /f "delims=\,  tokens=1" %%a in ('getmac /NH /FO csv' )  do @set MACADDR=%%a
 echo Adresse MAC de la carte ayant servi a l'install  : %MACADDR%
 if not exist %SystemDrive%\netinst\wget.exe goto notexistwget
 	call %SystemDrive%\netinst\se3ip.bat > NUL
