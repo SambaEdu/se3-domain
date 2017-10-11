@@ -23,7 +23,11 @@
 #  le script rejointSE3 
 # recupere l'action dans \\se3\netlogon\machine\$ip\  
 # 
-
+# hack transitoire pour tester le nouveau systeme
+if [ -f /usr/share/se3/scripts/sysprep.sh ]; then
+    /usr/share/se3/scripts/sysprep.sh $*
+    exit $?
+fi
 if [ -f  /home/netlogon/$3.lck ]; then 
     exit 0
 fi
