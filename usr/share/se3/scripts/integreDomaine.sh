@@ -23,11 +23,6 @@
 #  le script rejointSE3 
 # recupere l'action dans \\se3\netlogon\machine\$ip\  
 # 
-# hack transitoire pour tester le nouveau systeme
-if [ -f /usr/share/se3/scripts/sysprep.sh ]; then
-    /usr/share/se3/scripts/sysprep.sh $*
-    exit $?
-fi
 if [ -f  /home/netlogon/$3.lck ]; then 
     exit 0
 fi
@@ -159,6 +154,19 @@ if [ -z "$6" ]; then
 else
     passadmin="$6"
 fi
+# hack transitoire pour tester le nouveau systeme#
+###################################################
+mkgpopasswd $3
+ret=$(echo quit|smbclient //"$3"/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD 2>&1)
+echo $ret
+build=$(echo $ret | sed 's/\(^.*OS=\[Windows [0-9]\+ [a-zA-Z]\+ \([0-9]\+\).*\].*$\)/\2/g') 
+if [ "$build" -ge "7601" ]; then
+        if [ -f /usr/share/se3/scripts/sysprep.sh ]; then
+                /usr/share/se3/scripts/sysprep.sh $*
+        exit $?
+fi
+###################################################
+
 if [ "$action" == "ldap" ]; then
     # on enregistre la machine dans la base ldap
     /usr/share/se3/shares/shares.avail/connexion.sh adminse3 $name $ip $4
