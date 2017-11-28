@@ -154,15 +154,26 @@ if [ -z "$6" ]; then
 else
     passadmin="$6"
 fi
+domscripts=/home/netlogon/domscripts
+logondir="/home/netlogon/machine/$ip"
+  
 # hack transitoire pour tester le nouveau systeme#
 ###################################################
-mkgpopasswd $3
-ret=$(echo quit|smbclient //"$3"/ADMIN$ -A /home/netlogon/machine/$2/gpoPASSWD 2>&1)
-echo $ret
+
+mkgpopasswd $name
+ret=$(echo quit|smbclient //"$ip"/ADMIN$ -A /home/netlogon/machine/$ip/gpoPASSWD 2>&1)
+echo "$ret"
+# read && rm -f /home/netlogon/$ip.lck
 build=$(echo $ret | sed 's/\(^.*OS=\[Windows [0-9]\+ [a-zA-Z]\+ \([0-9]\+\).*\].*$\)/\2/g') 
+if [ -z "$build" ]; then
+	build="0"
+fi
+
 if [ "$build" -ge "7601" ]; then
         if [ -f /usr/share/se3/scripts/sysprep.sh ]; then
                 /usr/share/se3/scripts/sysprep.sh $*
+                rm -f /home/netlogon/$ip.lck
+        fi
         exit $?
 fi
 ###################################################
